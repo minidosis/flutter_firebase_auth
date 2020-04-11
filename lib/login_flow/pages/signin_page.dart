@@ -1,27 +1,29 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_firebase_auth/login_flow/auth_state_switch.dart';
 import 'package:flutter_firebase_auth/login_flow/widgets/button_sign_in.dart';
 import 'package:flutter_firebase_auth/login_flow/widgets/button_sign_in_with.dart';
 import 'package:flutter_firebase_auth/login_flow/widgets/text_field.dart';
 import 'package:flutter_firebase_auth/login_flow/widgets/or_bar.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:provider/provider.dart';
 
-class LoginPage extends StatefulWidget {
+class SignInPage extends StatefulWidget {
   @override
-  _LoginPageState createState() => _LoginPageState();
+  _SignInPageState createState() => _SignInPageState();
 }
 
-class _LoginPageState extends State<LoginPage> {
+class _SignInPageState extends State<SignInPage> {
   bool _loggingIn = false;
-  TextEditingController _usernameController = TextEditingController();
+  TextEditingController _emailController = TextEditingController();
   TextEditingController _passwordController = TextEditingController();
 
-  _signInAnonymously() async {
+  _signIn(Function signInFunc) {
     setState(() {
       _loggingIn = true;
     });
     try {
-      await FirebaseAuth.instance.signInAnonymously();
+      signInFunc();
     } catch (e) {
       Scaffold.of(context).showSnackBar(
         SnackBar(
@@ -35,11 +37,25 @@ class _LoginPageState extends State<LoginPage> {
     }
   }
 
+  _anonymously() async {
+    await FirebaseAuth.instance.signInAnonymously();
+  }
+
+  _withEmailAndPassword() async {
+    final String username = _emailController.text;
+    final String password = _passwordController.text;
+    await FirebaseAuth.instance.signInWithEmailAndPassword(
+      email: username,
+      password: password,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_loggingIn) {
       return Scaffold(body: Center(child: CircularProgressIndicator()));
     }
+    final SignInConfig config = Provider.of<SignInConfig>(context);
     final primaryColor = Theme.of(context).primaryColor;
     return Scaffold(
       backgroundColor: Colors.white,
@@ -64,8 +80,8 @@ class _LoginPageState extends State<LoginPage> {
                 ),
                 SizedBox(height: 24),
                 SignInTextField(
-                  'Username',
-                  controller: _usernameController,
+                  'Email',
+                  controller: _emailController,
                 ),
                 SizedBox(height: 16),
                 SignInTextField(
@@ -75,11 +91,9 @@ class _LoginPageState extends State<LoginPage> {
                 ),
                 SizedBox(height: 48),
                 SignInButton(
-                    color: primaryColor,
-                    onPressed: () {
-                      print(_usernameController.text);
-                      print(_passwordController.text);
-                    }),
+                  color: primaryColor,
+                  onPressed: () => _signIn(_withEmailAndPassword),
+                ),
                 OrBar(),
                 Row(
                   children: <Widget>[
@@ -101,13 +115,14 @@ class _LoginPageState extends State<LoginPage> {
                   ],
                 ),
                 SizedBox(height: 40),
-                FlatButton(
-                  child: Text(
-                    'Sign in anonymously',
-                    style: TextStyle(color: Colors.grey[500]),
+                if (config.canLoginAnonymously)
+                  FlatButton(
+                    child: Text(
+                      'Sign in anonymously',
+                      style: TextStyle(color: Colors.grey[500]),
+                    ),
+                    onPressed: () => _signIn(_anonymously),
                   ),
-                  onPressed: _signInAnonymously,
-                ),
               ],
             ),
           ),

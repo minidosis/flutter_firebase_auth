@@ -4,9 +4,16 @@ import 'package:flutter_firebase_auth/login_flow/login_flow_app.dart';
 import 'package:flutter_firebase_auth/login_flow/pages/splash_page.dart';
 import 'package:provider/provider.dart';
 
+class SignInConfig {
+  bool canLoginAnonymously;
+  SignInConfig(this.canLoginAnonymously);
+}
+
 class AuthStateSwitch extends StatelessWidget {
+  final signInConfig;
   final Widget app;
-  AuthStateSwitch({this.app});
+  AuthStateSwitch({@required this.app, canSignInAnonymously = false})
+      : signInConfig = SignInConfig(canSignInAnonymously);
 
   @override
   Widget build(BuildContext context) {
@@ -27,7 +34,10 @@ class AuthStateSwitch extends StatelessWidget {
             {
               final FirebaseUser user = snapshot.data;
               return user == null
-                  ? LoginFlowApp()
+                  ? Provider<SignInConfig>.value(
+                      value: signInConfig,
+                      child: SignInFlowApp(),
+                    )
                   : Provider<FirebaseUser>.value(
                       value: user,
                       child: this.app,

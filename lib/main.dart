@@ -3,10 +3,4 @@ import 'package:flutter_firebase_auth/app.dart';
 
 import 'login_flow/auth_state_switch.dart';
 
-void main() => runApp(
-      AuthStateSwitch(
-        app: App(),
-      ),
-    );
-
-
+void main() => runApp(AuthStateSwitch(app: App()));
