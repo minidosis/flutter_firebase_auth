@@ -1,11 +1,15 @@
-
 import 'package:flutter/material.dart';
 
 class SignInTextField extends StatefulWidget {
-  final bool showEyeIcon;
+  final bool showEyeIcon, isEmail;
   final String what;
   final TextEditingController controller;
-  SignInTextField(this.what, { this.showEyeIcon = false, @required this.controller });
+  SignInTextField(
+    this.what, {
+    this.showEyeIcon = false,
+    this.isEmail = false,
+    @required this.controller,
+  });
 
   @override
   _SignInTextFieldState createState() => _SignInTextFieldState();
@@ -13,7 +17,7 @@ class SignInTextField extends StatefulWidget {
 
 class _SignInTextFieldState extends State<SignInTextField> {
   bool _viewPassword = false;
-  
+
   @override
   Widget build(BuildContext context) {
     Widget eye;
@@ -37,6 +41,8 @@ class _SignInTextFieldState extends State<SignInTextField> {
         hintStyle: TextStyle(color: Colors.grey[400]),
         suffixIcon: eye,
       ),
+      keyboardType:
+          widget.isEmail ? TextInputType.emailAddress : TextInputType.text,
       obscureText: widget.showEyeIcon && !_viewPassword,
     );
   }
