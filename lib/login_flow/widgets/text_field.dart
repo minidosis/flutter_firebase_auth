@@ -1,15 +1,11 @@
 import 'package:flutter/material.dart';
 
+enum SignInTextFieldType { email, password }
+
 class SignInTextField extends StatefulWidget {
-  final bool showEyeIcon, isEmail;
-  final String what;
+  final SignInTextFieldType type;
   final TextEditingController controller;
-  SignInTextField(
-    this.what, {
-    this.showEyeIcon = false,
-    this.isEmail = false,
-    @required this.controller,
-  });
+  SignInTextField(this.type, this.controller);
 
   @override
   _SignInTextFieldState createState() => _SignInTextFieldState();
@@ -18,16 +14,16 @@ class SignInTextField extends StatefulWidget {
 class _SignInTextFieldState extends State<SignInTextField> {
   bool _viewPassword = false;
 
+  get isPassword => widget.type == SignInTextFieldType.password;
+
   @override
   Widget build(BuildContext context) {
     Widget eye;
-    if (widget.showEyeIcon) {
+    if (isPassword) {
       eye = IconButton(
         icon: Icon(_viewPassword ? Icons.visibility_off : Icons.visibility),
         onPressed: () {
-          setState(() {
-            _viewPassword = !_viewPassword;
-          });
+          setState(() => _viewPassword = !_viewPassword);
         },
       );
     }
@@ -37,13 +33,13 @@ class _SignInTextFieldState extends State<SignInTextField> {
         filled: true,
         fillColor: Colors.white,
         border: OutlineInputBorder(),
-        hintText: widget.what,
+        hintText: isPassword ? 'Password' : 'Email',
         hintStyle: TextStyle(color: Colors.grey[400]),
         suffixIcon: eye,
       ),
       keyboardType:
-          widget.isEmail ? TextInputType.emailAddress : TextInputType.text,
-      obscureText: widget.showEyeIcon && !_viewPassword,
+          isPassword ? TextInputType.emailAddress : TextInputType.text,
+      obscureText: isPassword && !_viewPassword,
     );
   }
 }

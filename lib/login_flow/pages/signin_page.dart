@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_firebase_auth/login_flow/auth_state_switch.dart';
+import 'package:flutter_firebase_auth/login_flow/pages/signup_page.dart';
 import 'package:flutter_firebase_auth/login_flow/widgets/button_sign_in.dart';
 import 'package:flutter_firebase_auth/login_flow/widgets/button_sign_in_with.dart';
 import 'package:flutter_firebase_auth/login_flow/widgets/text_field.dart';
@@ -14,7 +15,7 @@ class SignInPage extends StatefulWidget {
 }
 
 class _SignInPageState extends State<SignInPage> {
-  bool _signingIn = false;
+  bool _showProgress = false;
   TextEditingController _email = TextEditingController();
   TextEditingController _password = TextEditingController();
 
@@ -27,21 +28,21 @@ class _SignInPageState extends State<SignInPage> {
     );
   }
 
-  _signIn(Function signInFunc) async {
-    setState(() => _signingIn = true);
+  _waitAndCheckErrors(Function signInFunc) async {
+    setState(() => _showProgress = true);
     try {
       await signInFunc();
     } catch (e) {
       _showSnackbar(e.toString(), Colors.red);
-      setState(() => _signingIn = false);
+      setState(() => _showProgress = false);
     }
   }
 
-  _anonymously() async {
+  _signInAnonymously() async {
     await FirebaseAuth.instance.signInAnonymously();
   }
 
-  _withEmailAndPassword() async {
+  _signInWithEmailAndPassword() async {
     await FirebaseAuth.instance.signInWithEmailAndPassword(
       email: _email.text,
       password: _password.text,
@@ -50,7 +51,7 @@ class _SignInPageState extends State<SignInPage> {
 
   @override
   Widget build(BuildContext context) {
-    if (_signingIn) {
+    if (_showProgress) {
       return Scaffold(
         body: Center(child: CircularProgressIndicator()),
       );
@@ -67,28 +68,43 @@ class _SignInPageState extends State<SignInPage> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: <Widget>[
                 SizedBox(height: 120),
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    'Sign In',
-                    style: TextStyle(
-                      fontSize: 40,
-                      color: primaryColor,
-                      fontWeight: FontWeight.w300,
-                    ),
-                  ),
-                ),
+                ,
                 SizedBox(height: 24),
-                SignInTextField('Email', isEmail: true, controller: _email),
+                SignInTextField(SignInTextFieldType.email, _email),
                 SizedBox(height: 16),
-                SignInTextField('Password',
-                    showEyeIcon: true, controller: _password),
-                SizedBox(height: 48),
+                SignInTextField(SignInTextFieldType.password, _password),
+                SizedBox(height: 32),
                 SignInButton(
                   color: primaryColor,
-                  onPressed: () => _signIn(_withEmailAndPassword),
+                  onPressed: () =>
+                      _waitAndCheckErrors(_signInWithEmailAndPassword),
                 ),
-                OrBar(),
+                SizedBox(height: 16),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: <Widget>[
+                    Text(
+                      'Need an account?',
+                      style: TextStyle(
+                        color: Colors.black45,
+                        fontStyle: FontStyle.italic,
+                      ),
+                    ),
+                    SizedBox(width: 16),
+                    FlatButton(
+                      child: Text('Register'),
+                      textColor: primaryColor,
+                      onPressed: () async {
+                        EmailAndPassword result =
+                            await Navigator.of(context).push(
+                          MaterialPageRoute(builder: (_) => SignUpPage()),
+                        );
+                        print(result);
+                      },
+                    ),
+                  ],
+                ),
+                OrBar(spaceTop: 12, spaceBottom: 24),
                 Row(
                   children: <Widget>[
                     Expanded(
@@ -113,7 +129,7 @@ class _SignInPageState extends State<SignInPage> {
                       'Sign in anonymously',
                       style: TextStyle(color: Colors.grey[500]),
                     ),
-                    onPressed: () => _signIn(_anonymously),
+                    onPressed: () => _waitAndCheckErrors(_signInAnonymously),
                   ),
               ],
             ),
