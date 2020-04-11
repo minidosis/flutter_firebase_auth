@@ -14,26 +14,26 @@ class SignInPage extends StatefulWidget {
 }
 
 class _SignInPageState extends State<SignInPage> {
-  bool _loggingIn = false;
-  TextEditingController _emailController = TextEditingController();
-  TextEditingController _passwordController = TextEditingController();
+  bool _signingIn = false;
+  TextEditingController _email = TextEditingController();
+  TextEditingController _password = TextEditingController();
 
-  _signIn(Function signInFunc) {
-    setState(() {
-      _loggingIn = true;
-    });
+  _showSnackbar(String message, [Color backgroundColor = Colors.black87]) {
+    Scaffold.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: backgroundColor,
+      ),
+    );
+  }
+
+  _signIn(Function signInFunc) async {
+    setState(() => _signingIn = true);
     try {
-      signInFunc();
+      await signInFunc();
     } catch (e) {
-      Scaffold.of(context).showSnackBar(
-        SnackBar(
-          content: Text(e.toString()),
-          backgroundColor: Colors.red,
-        ),
-      );
-      setState(() {
-        _loggingIn = false;
-      });
+      _showSnackbar(e.toString(), Colors.red);
+      setState(() => _signingIn = false);
     }
   }
 
@@ -42,18 +42,18 @@ class _SignInPageState extends State<SignInPage> {
   }
 
   _withEmailAndPassword() async {
-    final String username = _emailController.text;
-    final String password = _passwordController.text;
     await FirebaseAuth.instance.signInWithEmailAndPassword(
-      email: username,
-      password: password,
+      email: _email.text,
+      password: _password.text,
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    if (_loggingIn) {
-      return Scaffold(body: Center(child: CircularProgressIndicator()));
+    if (_signingIn) {
+      return Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
     }
     final SignInConfig config = Provider.of<SignInConfig>(context);
     final primaryColor = Theme.of(context).primaryColor;
@@ -79,16 +79,10 @@ class _SignInPageState extends State<SignInPage> {
                   ),
                 ),
                 SizedBox(height: 24),
-                SignInTextField(
-                  'Email',
-                  controller: _emailController,
-                ),
+                SignInTextField('Email', isEmail: true, controller: _email),
                 SizedBox(height: 16),
-                SignInTextField(
-                  'Password',
-                  showEyeIcon: true,
-                  controller: _passwordController,
-                ),
+                SignInTextField('Password',
+                    showEyeIcon: true, controller: _password),
                 SizedBox(height: 48),
                 SignInButton(
                   color: primaryColor,
@@ -101,7 +95,6 @@ class _SignInPageState extends State<SignInPage> {
                       child: SignInWithButton(
                         'Google',
                         FontAwesomeIcons.google,
-                        onPressed: () {},
                       ),
                     ),
                     SizedBox(width: 16),
@@ -109,7 +102,6 @@ class _SignInPageState extends State<SignInPage> {
                       child: SignInWithButton(
                         'Facebook',
                         FontAwesomeIcons.facebook,
-                        onPressed: () {},
                       ),
                     ),
                   ],
