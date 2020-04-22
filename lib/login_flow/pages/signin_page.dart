@@ -2,6 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_firebase_auth/login_flow/auth_state_switch.dart';
 import 'package:flutter_firebase_auth/login_flow/pages/signup_page.dart';
+import 'package:flutter_firebase_auth/login_flow/widgets/auth_page_title.dart';
 import 'package:flutter_firebase_auth/login_flow/widgets/button_sign_in.dart';
 import 'package:flutter_firebase_auth/login_flow/widgets/button_sign_in_with.dart';
 import 'package:flutter_firebase_auth/login_flow/widgets/text_field.dart';
@@ -68,7 +69,7 @@ class _SignInPageState extends State<SignInPage> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: <Widget>[
                 SizedBox(height: 120),
-                ,
+                AuthPageTitle('Sign In'),
                 SizedBox(height: 24),
                 SignInTextField(SignInTextFieldType.email, _email),
                 SizedBox(height: 16),
