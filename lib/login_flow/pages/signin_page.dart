@@ -27,7 +27,8 @@ class _SignInPageBody extends StatefulWidget {
 }
 
 class _SignInPageBodyState extends State<_SignInPageBody> {
-  bool _showProgress = false;
+  bool _dead = false;
+  bool _showLoading = false;
   TextEditingController _ctrlEmail, _ctrlPassword;
   bool signButtonActive = false;
 
@@ -40,28 +41,26 @@ class _SignInPageBodyState extends State<_SignInPageBody> {
     _ctrlPassword.addListener(_updateSignButtonActive);
   }
 
-  _updateSignButtonActive() {
+  void _updateSignButtonActive() {
     setState(() {
       signButtonActive =
           (_ctrlEmail.text.isNotEmpty && _ctrlPassword.text.isNotEmpty);
     });
   }
 
-  _showSnackbar(String message, {IconData icon, Color color = Colors.red}) {
-    Scaffold.of(context).showSnackBar(
-      SnackBar(
-        content: Row(
-          children: <Widget>[
-            if (icon != null) ...[Icon(icon), SizedBox(width: 10)],
-            Expanded(child: Text(message)),
-          ],
-        ),
-        backgroundColor: color,
+  void _showSnackbar(String message, {IconData icon, Color color = Colors.red}) {
+    Scaffold.of(context).showSnackBar(SnackBar(
+      content: Row(
+        children: <Widget>[
+          if (icon != null) ...[Icon(icon), SizedBox(width: 10)],
+          Expanded(child: Text(message)),
+        ],
       ),
-    );
+      backgroundColor: color,
+    ));
   }
 
-  _showError(PlatformException e) {
+  void _showError(PlatformException e) {
     switch (e.code) {
       case 'ERROR_TOO_MANY_REQUESTS':
         _showSnackbar(
@@ -76,35 +75,72 @@ class _SignInPageBodyState extends State<_SignInPageBody> {
       case 'ERROR_INVALID_EMAIL':
         _showSnackbar("Invalid email");
         break;
+      case 'ERROR_WEAK_PASSWORD':
+        _showSnackbar("The password is too weak (should be at least 6 characters)");
+        break;
+      case 'ERROR_EMAIL_ALREADY_IN_USE':
+        _showSnackbar("The provided email is already signed up");
+        break;
       default:
-        return "Unknown error '${e.code}'";
+        print(e.toString());
+        _showSnackbar("Unknown error '${e.code}'");
     }
   }
 
-  _waitAndCheckErrors(Function signInFunc) async {
-    setState(() => _showProgress = true);
+  @override
+  void dispose() {
+    _dead = true;
+    super.dispose();
+  }
+
+  void showLoading(bool b) {
+    if (!_dead) {
+      setState(() => _showLoading = b);
+    }
+  }
+
+  void _signInAnonymously() async {
     try {
-      await signInFunc();
+      showLoading(true);
+      await FirebaseAuth.instance.signInAnonymously();
+    } catch (e) {
+      _showError(e);
+    } finally {
+      showLoading(false);
+    }
+  }
+
+  void _signInWithEmailAndPassword() async {
+    try {
+      showLoading(true);
+      await FirebaseAuth.instance.signInWithEmailAndPassword(
+        email: _ctrlEmail.text,
+        password: _ctrlPassword.text,
+      );
+    } catch (e) {
+      _showError(e);
+    } finally {
+      showLoading(false);
+    }
+  }
+
+  void _createUserWithEmailAndPassword(EmailAndPassword credentials) async {
+    try {
+      showLoading(true);
+      await FirebaseAuth.instance.createUserWithEmailAndPassword(
+        email: credentials.email,
+        password: credentials.password,
+      );
     } on PlatformException catch (e) {
       _showError(e);
-      setState(() => _showProgress = false);
+    } finally {
+      showLoading(false);
     }
-  }
-
-  _signInAnonymously() async {
-    await FirebaseAuth.instance.signInAnonymously();
-  }
-
-  _signInWithEmailAndPassword() async {
-    await FirebaseAuth.instance.signInWithEmailAndPassword(
-      email: _ctrlEmail.text,
-      password: _ctrlPassword.text,
-    );
   }
 
   @override
   Widget build(BuildContext context) {
-    if (_showProgress) {
+    if (_showLoading) {
       return Center(child: CircularProgressIndicator());
     }
     final SignInConfig config = Provider.of<SignInConfig>(context);
@@ -125,9 +161,8 @@ class _SignInPageBodyState extends State<_SignInPageBody> {
               SizedBox(height: 32),
               SignInButton(
                 color: primaryColor,
-                onPressed: signButtonActive
-                    ? () => _waitAndCheckErrors(_signInWithEmailAndPassword)
-                    : null,
+                onPressed:
+                    signButtonActive ? _signInWithEmailAndPassword : null,
               ),
               SizedBox(height: 16),
               Row(
@@ -142,14 +177,16 @@ class _SignInPageBodyState extends State<_SignInPageBody> {
                   ),
                   SizedBox(width: 16),
                   FlatButton(
-                    child: Text('Register'),
+                    child: Text('Sign Up'),
                     textColor: primaryColor,
                     onPressed: () async {
                       EmailAndPassword result =
                           await Navigator.of(context).push(
                         MaterialPageRoute(builder: (_) => SignUpPage()),
                       );
-                      print(result);
+                      if (result != null) {
+                        _createUserWithEmailAndPassword(result);
+                      }
                     },
                   ),
                 ],
@@ -179,7 +216,7 @@ class _SignInPageBodyState extends State<_SignInPageBody> {
                     'Sign in anonymously',
                     style: TextStyle(color: Colors.grey[500]),
                   ),
-                  onPressed: () => _waitAndCheckErrors(_signInAnonymously),
+                  onPressed: _signInAnonymously,
                 ),
             ],
           ),
