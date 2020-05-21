@@ -48,7 +48,8 @@ class _SignInPageBodyState extends State<_SignInPageBody> {
     });
   }
 
-  void _showSnackbar(String message, {IconData icon, Color color = Colors.red}) {
+  void _showSnackbar(String message,
+      {IconData icon, Color color = Colors.red}) {
     Scaffold.of(context).showSnackBar(SnackBar(
       content: Row(
         children: <Widget>[
@@ -76,7 +77,8 @@ class _SignInPageBodyState extends State<_SignInPageBody> {
         _showSnackbar("Invalid email");
         break;
       case 'ERROR_WEAK_PASSWORD':
-        _showSnackbar("The password is too weak (should be at least 6 characters)");
+        _showSnackbar(
+            "The password is too weak (should be at least 6 characters)");
         break;
       case 'ERROR_EMAIL_ALREADY_IN_USE':
         _showSnackbar("The provided email is already signed up");
@@ -191,33 +193,40 @@ class _SignInPageBodyState extends State<_SignInPageBody> {
                   ),
                 ],
               ),
-              OrBar(spaceTop: 12, spaceBottom: 24),
-              Row(
-                children: <Widget>[
-                  Expanded(
-                    child: SignInWithButton(
-                      'Google',
-                      FontAwesomeIcons.google,
-                    ),
-                  ),
-                  SizedBox(width: 16),
-                  Expanded(
-                    child: SignInWithButton(
-                      'Facebook',
-                      FontAwesomeIcons.facebook,
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: 40),
-              if (config.canLoginAnonymously)
+              if (config.withFacebook || config.withGoogle) ...[
+                OrBar(spaceTop: 12, spaceBottom: 24),
+                Row(
+                  children: <Widget>[
+                    if (config.withGoogle)
+                      Expanded(
+                        child: SignInWithButton(
+                          'Google',
+                          FontAwesomeIcons.google,
+                        ),
+                      ),
+                    if (config.withFacebook && config.withGoogle)
+                      SizedBox(width: 16),
+                    if (config.withFacebook)
+                      Expanded(
+                        child: SignInWithButton(
+                          'Facebook',
+                          FontAwesomeIcons.facebook,
+                        ),
+                      ),
+                  ],
+                ),
+              ],
+              if (config.anonymously) ...[
+                Spacer(),
                 FlatButton(
                   child: Text(
                     'Sign in anonymously',
-                    style: TextStyle(color: Colors.grey[500]),
+                    style: TextStyle(color: primaryColor),
                   ),
                   onPressed: _signInAnonymously,
                 ),
+                SizedBox(height: 20),
+              ]
             ],
           ),
         ),
