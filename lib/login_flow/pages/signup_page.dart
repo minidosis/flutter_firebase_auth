@@ -29,14 +29,14 @@ class _SignUpPageState extends State<SignUpPage> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: <Widget>[
               SizedBox(height: 100),
-              AuthPageTitle('Register'),
+              AuthPageTitle('Sign Up'),
               SizedBox(height: 24),
               SignInTextField(SignInTextFieldType.email, _email),
               SizedBox(height: 24),
               SignInTextField(SignInTextFieldType.password, _password),
               SizedBox(height: 48),
               SignInButton(
-                text: 'Register',
+                text: 'Sign Up',
                 onPressed: () {
                   Navigator.of(context).pop(
                     EmailAndPassword(_email.text, _password.text),
