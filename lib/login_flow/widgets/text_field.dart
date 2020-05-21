@@ -38,7 +38,7 @@ class _SignInTextFieldState extends State<SignInTextField> {
         suffixIcon: eye,
       ),
       keyboardType:
-          isPassword ? TextInputType.emailAddress : TextInputType.text,
+          isPassword ? TextInputType.text : TextInputType.emailAddress,
       obscureText: isPassword && !_viewPassword,
     );
   }
