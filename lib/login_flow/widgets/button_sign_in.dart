@@ -22,6 +22,7 @@ class SignInButton extends StatelessWidget {
         style: TextStyle(color: Colors.white, fontSize: 16),
       ),
       color: color,
+      disabledColor: Colors.grey,
       padding: EdgeInsets.all(16),
     );
   }
